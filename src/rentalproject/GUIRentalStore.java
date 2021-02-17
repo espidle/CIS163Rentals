@@ -20,12 +20,14 @@ public class GUIRentalStore extends JFrame implements ActionListener {
     private JMenuItem rentConsoleItem;
     private JMenuItem rentGameItem;
     private JMenuItem returnItem;
+    private JMenuItem everythingItem; 
 
     private JMenuItem currentRentedItemScn;
     private JMenuItem currentReturnedItemScn;
     private JMenuItem withIn7ItemScn;
     private JMenuItem sort30DaysItemScn;
     private JMenuItem sortGameItemScn;
+
 
     private JPanel panel;
 
@@ -47,6 +49,7 @@ public class GUIRentalStore extends JFrame implements ActionListener {
         rentConsoleItem = new JMenuItem("Rent a Console");
         rentGameItem = new JMenuItem("Rent a Game");
         returnItem = new JMenuItem("Return of Game or Console");
+        everythingItem = new JMenuItem("Everything Screen");
 
         currentRentedItemScn = new JMenuItem("Current Rental Screen");
         currentReturnedItemScn = new JMenuItem("Returned screen");
@@ -67,6 +70,7 @@ public class GUIRentalStore extends JFrame implements ActionListener {
         fileMenu.add(withIn7ItemScn);
         fileMenu.add (sortGameItemScn);
         fileMenu.add(sort30DaysItemScn);
+        fileMenu.add(everythingItem);
         fileMenu.addSeparator();
 
         actionMenu.add(rentConsoleItem);
@@ -85,6 +89,7 @@ public class GUIRentalStore extends JFrame implements ActionListener {
         rentConsoleItem.addActionListener(this);
         rentGameItem.addActionListener(this);
         returnItem.addActionListener(this);
+        everythingItem.addActionListener(this);
 
         currentRentedItemScn.addActionListener(this);
         currentReturnedItemScn.addActionListener(this);
@@ -121,11 +126,17 @@ public class GUIRentalStore extends JFrame implements ActionListener {
             dList.setDisplay(ScreenDisplay.DueWithInWeek);
         }
 
-        if (sortGameItemScn == comp)
+        if (sortGameItemScn == comp){
             dList.setDisplay(ScreenDisplay.DueWithinWeekGamesFirst);
+        }
 
-        if (sort30DaysItemScn == comp)
+        if (sort30DaysItemScn == comp){
             dList.setDisplay(ScreenDisplay.Cap14DaysOverdue);
+        }
+        
+        if(everythingItem == comp){
+            dList.setDisplay(ScreenDisplay.EverythingScreen);
+        }
 
         if (openSerItem == comp || openTextItem == comp) {
             JFileChooser chooser = new JFileChooser();

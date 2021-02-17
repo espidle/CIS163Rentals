@@ -28,6 +28,8 @@ public class ListModel extends AbstractTableModel {
 
     private String[] columnNamesCurrentRentals = {"Renter\'s Name", "Est. Cost",
             "Rented On", "Due Date ", "Console", "Name of the Game"};
+    private String[] columnNamesEverythingStrings = {"Renter\'s Name", "Rented on Date", "Due Date", 
+            "Actual Date Returned", "Est Cost", "Real Cost", "Console", "Name of Game"};
     private String[] columnNamesReturned = {"Renter\'s Name", "Rented On Date",
             "Due Date", "Actual date returned ", "Est. Cost", " Real Cost"};
 
@@ -83,6 +85,9 @@ public class ListModel extends AbstractTableModel {
             case Cap14DaysOverdue:
                 // Your code goes here AND OTHER PLACES TOO
                 break;
+            case EverythingScreen:
+                filteredListRentals = listOfRentals;
+                break;
 
             default:
                 throw new RuntimeException("upDate is in undefined state: " + display);
@@ -125,6 +130,8 @@ public class ListModel extends AbstractTableModel {
                 return columnNamesCurrentRentals[col];
             case DueWithinWeekGamesFirst:
                 return columnNamesCurrentRentals[col];
+            case EverythingScreen:
+                return columnNamesEverythingStrings[col];
 
         }
         throw new RuntimeException("Undefined state for Col Names: " + display);
@@ -143,6 +150,8 @@ public class ListModel extends AbstractTableModel {
                 return columnNamesCurrentRentals.length;
             case DueWithinWeekGamesFirst:
                 return columnNamesCurrentRentals.length;
+            case EverythingScreen: 
+                return columnNamesEverythingStrings.length;
 
 
 
@@ -168,6 +177,8 @@ public class ListModel extends AbstractTableModel {
                 return currentRentScreen(row, col);
             case DueWithinWeekGamesFirst:
                 return currentRentScreen(row, col);
+            case EverythingScreen: 
+                return everythingScreen(row, col);
 
 
         }
@@ -243,7 +254,54 @@ public class ListModel extends AbstractTableModel {
                 throw new RuntimeException("Row,col out of range: " + row + " " + col);
         }
     }
+    private Object everythingScreen (int row, int col)
+    {
+        switch(col)
+        {
+            case 0:
+                return (filteredListRentals.get(row).nameOfRenter);
 
+            case 1:
+                return (formatter.format(filteredListRentals.get(row).rentedOn.
+                getTime()));
+            case 2:
+                return(formatter.format(filteredListRentals.get(row).dueBack.getTime()));
+            case 3: 
+                if(filteredListRentals.get(row).getActualDateReturned() != null){
+                    return (formatter.format(filteredListRentals.get(row).actualDateReturned.getTime()));}
+                else
+                    return "N/A";
+                    
+            case 4:
+                return (filteredListRentals.get(row).getCost(filteredListRentals.
+                get(row).dueBack));
+            
+            case 5:
+                    if(filteredListRentals.get(row).actualDateReturned != null){
+                return filteredListRentals.get(row).getCost(filteredListRentals.get(row).
+                actualDateReturned);}
+                    else{
+                        return "Not Returned";}
+            case 6:
+                if (filteredListRentals.get(row) instanceof Console){
+                    return (((Console) filteredListRentals.get(row)).getConsoleType());}
+                else {
+                    if (filteredListRentals.get(row) instanceof Game){
+                        if (((Game) filteredListRentals.get(row)).getConsole() != null){
+                            return ((Game) filteredListRentals.get(row)).getConsole();}
+                        else{
+                            return "";}
+                    }
+                }
+            case 7:
+                if (filteredListRentals.get(row) instanceof Game)
+                    return (((Game) filteredListRentals.get(row)).getNameGame());
+                else
+                    return "";
+            default:
+                throw new RuntimeException("Row,col out of range: " + row + " " + col);
+        }
+    }
     public void add(Rental a) {
         listOfRentals.add(a);
         updateScreen();
