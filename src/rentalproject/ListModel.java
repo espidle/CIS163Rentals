@@ -75,7 +75,13 @@ public class ListModel extends AbstractTableModel {
                 break;
 
             case DueWithInWeek:
-                //  Your code goes here
+                GregorianCalendar tempRentedCal = new GregorianCalendar();
+                GregorianCalendar tempDueCal = new GregorianCalendar();
+                filteredListRentals = (ArrayList<Rental>) listOfRentals.stream().filter( n -> {tempRentedCal = n.getRentedOn();
+                tempDueCal = n.getDueBack(); 
+                tempRentedCal.add(Calendar.DATE, 7);
+                (tempDueCal.compareTo(tempRentedCal) < 1);}.collect(Collectors.toList()));
+            
                 break;
 
             case DueWithinWeekGamesFirst:
@@ -87,6 +93,7 @@ public class ListModel extends AbstractTableModel {
                 break;
             case EverythingScreen:
                 filteredListRentals = listOfRentals;
+                Collections.sort(filteredListRentals, (n1, n2) -> n1.nameOfRenter.compareTo(n2.nameOfRenter));
                 break;
 
             default:
@@ -333,7 +340,6 @@ public class ListModel extends AbstractTableModel {
         try {
             FileInputStream fis = new FileInputStream(filename);
             ObjectInputStream is = new ObjectInputStream(fis);
-
             listOfRentals = (ArrayList<Rental>) is.readObject();
             updateScreen();
             is.close();
@@ -384,7 +390,90 @@ public class ListModel extends AbstractTableModel {
 
     public void loadFromText(String filename) {
         listOfRentals.clear();
+        if (filename.equals("")) {
+            throw new IllegalArgumentException();
+        }
+        try{
+            Scanner scan = new Scanner(new File(filename));
+            int numOfRentals = Integer.parseInt(scan.nextLine());
+            for(int i = 0; i < numOfRentals; i++)
+            {
+                String type = scan.nextLine(); 
+                if(type.contains("Game"))
+                {
+                    String renterName = scan.nextLine();
+                    renterName = renterName.substring(8);
+                    String rentalDate  = scan.nextLine();
+                    rentalDate = rentalDate.substring(10);
+                    String due = scan.nextLine();
+                    due = due.substring(8);
+                    String returnDate = scan.nextLine();
+                    String gameTitle = scan.nextLine();
+                    String gameConsoleName = scan.nextLine();
 
+                    GregorianCalendar ReturnD = new GregorianCalendar();
+                    GregorianCalendar RD = new GregorianCalendar();
+                    GregorianCalendar DD = new GregorianCalendar();
+                    ConsoleTypes gamesConsole = ConsoleTypes.NoSelection;
+                    
+                    if(!(gameConsoleName.contains("No Console")))
+                        gamesConsole = ConsoleTypes.valueOf(gameConsoleName);
+                    if(returnDate.contains("Not returned!"))
+                        {
+                            ReturnD = null;
+                        }
+                    else
+                    {
+                        try{
+                        Date dateReturn = formatter.parse(returnDate);
+                        ReturnD.setTime(dateReturn);
+                        }
+                        catch(Exception ex)
+                        {
+                            System.out.println("return date problem");
+                        }
+                        
+                    }
+                    try{
+                    Date rentDate = formatter.parse(rentalDate);
+                    Date dueDate = formatter.parse(due);
+                    RD.setTime(rentDate);
+                    DD.setTime(dueDate);
+                    }
+                    catch(Exception ex)
+                    {
+                        System.out.println("Date not formatted correctly");
+                    }
+                   
+                    Game g = new Game(renterName, RD, DD, ReturnD, gameTitle, gamesConsole);
+                    listOfRentals.add(g);
+                }
+                else 
+                {
+                    String consoleRenterName = scan.nextLine();
+                    consoleRenterName = consoleRenterName.substring(8);
+                    String consoleRentalDate  = scan.nextLine();
+                    consoleRentalDate = consoleRentalDate.substring(10);
+                    try {
+                    Date rentDate = formatter.parse(consoleRentalDate);
+                    GregorianCalendar CRD = new GregorianCalendar();
+                    CRD.setTime(rentDate);
+                    }
+
+                    catch(Exception ex)
+                    {
+
+                    }
+                   
+                    Console c = new Console();
+                }
+                
+            }
+        }
+        catch(IOException ex)
+        {
+            System.out.println("Cannot load file");
+        }
         updateScreen();
     }
 

@@ -17,6 +17,7 @@ public class GUIRentalStore extends JFrame implements ActionListener {
     private JMenuItem saveSerItem;
     private JMenuItem openTextItem;
     private JMenuItem saveTextItem;
+    private JMenuItem loadTextItem;
     private JMenuItem rentConsoleItem;
     private JMenuItem rentGameItem;
     private JMenuItem returnItem;
