@@ -17,7 +17,7 @@ public class GUIRentalStore extends JFrame implements ActionListener {
     private JMenuItem saveSerItem;
     private JMenuItem openTextItem;
     private JMenuItem saveTextItem;
-    private JMenuItem loadTextItem;
+    private JMenuItem laterentalItem;
     private JMenuItem rentConsoleItem;
     private JMenuItem rentGameItem;
     private JMenuItem returnItem;
@@ -51,6 +51,7 @@ public class GUIRentalStore extends JFrame implements ActionListener {
         rentGameItem = new JMenuItem("Rent a Game");
         returnItem = new JMenuItem("Return of Game or Console");
         everythingItem = new JMenuItem("Everything Screen");
+        laterentalItem = new JMenuItem("Late Rentals");
 
         currentRentedItemScn = new JMenuItem("Current Rental Screen");
         currentReturnedItemScn = new JMenuItem("Returned screen");
@@ -72,6 +73,7 @@ public class GUIRentalStore extends JFrame implements ActionListener {
         fileMenu.add (sortGameItemScn);
         fileMenu.add(sort30DaysItemScn);
         fileMenu.add(everythingItem);
+        fileMenu.add(laterentalItem);
         fileMenu.addSeparator();
 
         actionMenu.add(rentConsoleItem);
@@ -91,6 +93,7 @@ public class GUIRentalStore extends JFrame implements ActionListener {
         rentGameItem.addActionListener(this);
         returnItem.addActionListener(this);
         everythingItem.addActionListener(this);
+        laterentalItem.addActionListener(this);
 
         currentRentedItemScn.addActionListener(this);
         currentReturnedItemScn.addActionListener(this);
@@ -137,6 +140,9 @@ public class GUIRentalStore extends JFrame implements ActionListener {
         
         if(everythingItem == comp){
             dList.setDisplay(ScreenDisplay.EverythingScreen);
+        }
+        if(laterentalItem == comp){
+            dList.setDisplay(ScreenDisplay.LateRentals);
         }
 
         if (openSerItem == comp || openTextItem == comp) {
@@ -197,6 +203,7 @@ public class GUIRentalStore extends JFrame implements ActionListener {
                 dList.update(index, unit);
             }
         }
+        
     }
 
     public static void main(String[] args) {

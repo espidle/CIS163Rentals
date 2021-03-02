@@ -6,5 +6,6 @@ public enum ScreenDisplay {
     DueWithInWeek,
     DueWithinWeekGamesFirst,
     Cap14DaysOverdue,
-    EverythingScreen
+    EverythingScreen,
+    LateRentals
 }

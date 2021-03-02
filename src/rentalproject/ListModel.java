@@ -32,8 +32,13 @@ public class ListModel extends AbstractTableModel {
             "Actual Date Returned", "Est Cost", "Real Cost", "Console", "Name of Game"};
     private String[] columnNamesReturned = {"Renter\'s Name", "Rented On Date",
             "Due Date", "Actual date returned ", "Est. Cost", " Real Cost"};
+    private String[] columnLateRentals = {"Renter\'s Name", "Est. Cost",
+    "Rented On", "Due Date ", "Number of Days Late", "Console", "Name of the Game" };
 
+    /* Formats all the dates used throughout the project **/
     private DateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
+
+    private GregorianCalendar currentDate  = new GregorianCalendar();
 
     public ListModel() {
         display = ScreenDisplay.CurrentRentalStatus;
@@ -109,35 +114,64 @@ public class ListModel extends AbstractTableModel {
                 break;
 
             case Cap14DaysOverdue:
-            ArrayList<Rental> fourteenDaysOver = new  ArrayList<Rental>();
-            fourteenDaysOver = (ArrayList<Rental>) listOfRentals.stream().filter(n -> {
-                GregorianCalendar tempRentedCal = new GregorianCalendar();
-                GregorianCalendar tempDueCal = new GregorianCalendar();
-                tempRentedCal = (GregorianCalendar)n.getRentedOn().clone();
-                tempDueCal = (GregorianCalendar)n.getDueBack().clone(); 
-                tempRentedCal.add(Calendar.DATE, 14);
-                return tempDueCal.compareTo(tempRentedCal) > -1; 
-            }).map(n ->
-               { 
-                   Rental tempRent = new Rental(n.nameOfRenter, n.rentedOn, n.dueBack, n.actualDateReturned); 
-               }
-            ).collect(Collectors.toList());
-            
-            filteredListRentals = (ArrayList<Rental>) listOfRentals.stream().filter( n -> {
+            filteredListRentals = (ArrayList<Rental>) listOfRentals.stream().filter(n -> {
                 GregorianCalendar tempRentedCal = new GregorianCalendar();
                 GregorianCalendar tempDueCal = new GregorianCalendar();
                 tempRentedCal = (GregorianCalendar)n.getRentedOn().clone();
                 tempDueCal = (GregorianCalendar)n.getDueBack().clone(); 
                 tempRentedCal.add(Calendar.DATE, 7);
-                return tempDueCal.compareTo(tempRentedCal) == 1;
-            }).collect(Collectors.toList());
-             
+                return tempDueCal.compareTo(tempRentedCal) > -1; 
+            }).map(n -> capGameOrConsole(n)
+            ).collect(Collectors.toList());
+            
+             Collections.sort(filteredListRentals, (n1, n2) -> n1.getNameOfRenter().compareTo(n2.getNameOfRenter()));
            break;
+
+           
             case EverythingScreen:
                 filteredListRentals = listOfRentals;
                 Collections.sort(filteredListRentals, (n1, n2) -> n1.nameOfRenter.compareTo(n2.nameOfRenter));
                 break;
 
+            case LateRentals:
+            ArrayList<Rental> gameLateObjects = new  ArrayList<Rental>();
+            ArrayList<Rental> consoleLateObjects = new  ArrayList<Rental>();
+            ArrayList<Rental> allLateObjects = new  ArrayList<Rental>();
+                gameLateObjects = (ArrayList<Rental>) listOfRentals.stream().filter( n ->  n instanceof Game).collect(Collectors.toList());
+                Collections.sort(gameLateObjects, new Comparator<Rental>() {
+                    public int compare (Rental r1, Rental r2){
+                        if(Integer.compare(r1.getDaysLate(), r2.getDaysLate()) == 0)
+                            return r1.getNameOfRenter().compareTo(r2.getNameOfRenter());
+
+                        return Integer.compare(r2.getDaysLate(), r1.getDaysLate());
+                    }
+
+                });
+                consoleLateObjects = (ArrayList<Rental>) listOfRentals.stream().filter( n ->  n instanceof Console).collect(Collectors.toList());
+                Collections.sort(consoleLateObjects, new Comparator<Rental>() {
+                    public int compare (Rental r1, Rental r2){
+                        if(Integer.compare(r1.getDaysLate(), r2.getDaysLate()) == 0)
+                            return r1.getNameOfRenter().compareTo(r2.getNameOfRenter());
+
+                        return Integer.compare(r2.getDaysLate(), r1.getDaysLate());
+                    }
+
+                });
+                gameLateObjects.addAll(consoleLateObjects);
+                allLateObjects = gameLateObjects;
+                filteredListRentals = (ArrayList<Rental>) allLateObjects.stream().filter(n1 -> n1.actualDateReturned == null).collect(Collectors.toList());
+                
+
+                // Collections.sort(friends, new Comparator<Student>() {
+                //     public int compare(Student o1, Student o2) {
+                //         if(o1.getLastName().compareTo(o2.getLastName()) == 0) 
+                //             return o1.getFirstName().compareTo(o2.getFirstName());
+                //          else 
+                //             return o1.getLastName().compareTo(o2.getLastName());
+                //     }
+                // });
+                // System.out.println("TODO 4" + friends);
+                break; 
             default:
                 throw new RuntimeException("update is in undefined state: " + display);
         }
@@ -165,6 +199,29 @@ public class ListModel extends AbstractTableModel {
 
 		return daysBetween;
 	}
+    private Rental capGameOrConsole(Rental R)
+    {
+        if(R instanceof Game)
+        {
+            Game temp = (Game)R; 
+            Game G = new Game(temp.nameOfRenter, temp.rentedOn, temp.dueBack, temp.actualDateReturned, temp.getNameGame(), temp.getConsole());
+            if(daysBetween(G.rentedOn, G.dueBack) >= 14)
+                 G.setNameOfRenter(G.nameOfRenter.toUpperCase());
+            return G;
+
+        }
+        else if(R instanceof Console)
+        {
+            Console temp = (Console) R; 
+            Console C = new Console(temp.nameOfRenter, temp.rentedOn, temp.dueBack, temp.actualDateReturned, temp.getConsoleType());
+            if(daysBetween(C.rentedOn, C.dueBack) >= 14)
+                C.setNameOfRenter(C.nameOfRenter.toUpperCase()); 
+            return C; 
+        }
+        else 
+            return R;
+        
+    }
 
        @Override
     public String getColumnName(int col) {
@@ -181,6 +238,8 @@ public class ListModel extends AbstractTableModel {
                 return columnNamesCurrentRentals[col];
             case EverythingScreen:
                 return columnNamesEverythingStrings[col];
+            case LateRentals:
+                return columnLateRentals[col];
 
         }
         throw new RuntimeException("Undefined state for Col Names: " + display);
@@ -201,6 +260,8 @@ public class ListModel extends AbstractTableModel {
                 return columnNamesCurrentRentals.length;
             case EverythingScreen: 
                 return columnNamesEverythingStrings.length;
+            case LateRentals:
+                return columnLateRentals.length;
 
 
 
@@ -223,13 +284,13 @@ public class ListModel extends AbstractTableModel {
             case DueWithInWeek:
                 return currentRentScreen(row, col);
             case Cap14DaysOverdue:
-                return currentRentScreen(row, col);
+                return dueWithInWeekCap14(row, col);
             case DueWithinWeekGamesFirst:
                 return dueWithInWeek(row, col);
             case EverythingScreen: 
                 return everythingScreen(row, col);
-
-
+            case LateRentals:
+                return LateRentalsScreen(row, col);
         }
         throw new IllegalArgumentException();
     }
@@ -262,7 +323,7 @@ public class ListModel extends AbstractTableModel {
                         else
                             return "";
                 }
-
+            
             case 5:
                 if (filteredListRentals.get(row) instanceof Game)
                     return (((Game) filteredListRentals.get(row)).getNameGame());
@@ -273,7 +334,48 @@ public class ListModel extends AbstractTableModel {
         }
     }
 
+    private Object LateRentalsScreen(int row, int col)
+    {
+        switch(col)
+        {
+        case 0:
+            return (filteredListRentals.get(row).nameOfRenter);
 
+        case 1:
+            return (filteredListRentals.get(row).getCost(filteredListRentals.
+                    get(row).dueBack));
+
+        case 2:
+            return (formatter.format(filteredListRentals.get(row).rentedOn.getTime()));
+
+        case 3:
+            if (filteredListRentals.get(row).dueBack == null)
+                return "-";
+            return (formatter.format(filteredListRentals.get(row).dueBack.getTime()));
+        case 4: 
+            return (filteredListRentals.get(row).getDaysLate());
+            
+        
+        case 5: 
+        if (filteredListRentals.get(row) instanceof Console)
+            return (((Console) filteredListRentals.get(row)).getConsoleType());
+        else {
+            if (filteredListRentals.get(row) instanceof Game)
+                if (((Game) filteredListRentals.get(row)).getConsole() != null)
+                    return ((Game) filteredListRentals.get(row)).getConsole();
+                else
+                    return "";
+            }
+
+        case 6:
+            if (filteredListRentals.get(row) instanceof Game)
+                return (((Game) filteredListRentals.get(row)).getNameGame());
+            else
+                return "";
+        default: 
+         throw new RuntimeException("Row,col out of range: " + row + " " + col);
+        }
+    }
     private Object rentedOutScreen(int row, int col) {
         switch (col) {
             case 0:
@@ -357,6 +459,41 @@ public class ListModel extends AbstractTableModel {
         switch(col)
         {
             case 0:
+                return (filteredListRentals.get(row).nameOfRenter);
+            case 1:
+                return (filteredListRentals.get(row).getCost(filteredListRentals.
+                get(row).dueBack));
+            case 2:
+                return (formatter.format(filteredListRentals.get(row).rentedOn.
+                getTime()));
+            case 3:
+                return(formatter.format(filteredListRentals.get(row).dueBack.getTime()));
+            case 4:
+                if (filteredListRentals.get(row) instanceof Console){
+                    return (((Console) filteredListRentals.get(row)).getConsoleType());}
+                else {
+                    if (filteredListRentals.get(row) instanceof Game){
+                        if (((Game) filteredListRentals.get(row)).getConsole() != null){
+                            return ((Game) filteredListRentals.get(row)).getConsole();}
+                        else{
+                            return "";}
+                        }
+                    }
+            case 5:
+                if (filteredListRentals.get(row) instanceof Game)
+                    return (((Game) filteredListRentals.get(row)).getNameGame());
+                else
+                    return "";
+
+            default:
+                throw new RuntimeException("Row or col out of range:" + row + " " + col);
+        }
+    }
+
+    private Object dueWithInWeekCap14(int row, int col)
+    {
+        switch(col){
+        case 0:
                 return (filteredListRentals.get(row).nameOfRenter);
             case 1:
                 return (filteredListRentals.get(row).getCost(filteredListRentals.
@@ -651,6 +788,7 @@ public class ListModel extends AbstractTableModel {
                         game = new Game(guest, g4, g, null, "title2", ConsoleTypes.NintendoSwitch);
                     else
                         game = new Game(guest, g4, g, null, "title2", null);
+                        game.setDaysLate(daysBetween(game.dueBack, currentDate));
                     add(game);
 
 
@@ -659,6 +797,7 @@ public class ListModel extends AbstractTableModel {
                     date = df.parse("7/" + (rand.nextInt(20) + 2) + "/2020");
                     g.setTime(date);
                     Console console = new Console(guest, g4, g, null, getOneRandom(rand));
+                    console.setDaysLate(daysBetween(console.dueBack, currentDate));
                     add(console);
                 }
 

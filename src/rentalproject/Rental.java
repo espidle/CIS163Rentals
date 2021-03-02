@@ -23,6 +23,8 @@ Rental implements Serializable {
     /** The actual date the Rental was returned on */
     protected GregorianCalendar actualDateReturned;
 
+    protected int daysLate; 
+
     public Rental() {
     }
 
@@ -36,6 +38,7 @@ Rental implements Serializable {
         this.rentedOn = rentedOn;
         this.dueBack = dueBack;
         this.actualDateReturned = actualDateReturned;
+        daysLate = 0;
     }
 
     public String getNameOfRenter() {
@@ -68,6 +71,14 @@ Rental implements Serializable {
 
     public void setDueBack(GregorianCalendar dueBack) {
         this.dueBack = dueBack;
+    }
+    public void setDaysLate(int daysLate) {
+        if(daysLate < 0)
+            daysLate = 0;
+        this.daysLate = daysLate;
+    }
+    public int getDaysLate() {
+        return daysLate;
     }
 
     // following code used for debugging only
