@@ -40,7 +40,7 @@ public class Console extends Rental {
 
         while (gTemp.after(rentedOn)) {
             while (gTemp.after(rentedOn)) {
-                if ((this.consoleType == ConsoleTypes.NintendoSwich) ||
+                if ((this.consoleType == ConsoleTypes.NintendoSwitch) ||
                         (this.consoleType == ConsoleTypes.PlayStation4Pro) ||
                         (this.consoleType == ConsoleTypes.SegaGenesisMini))
                     cost += 1.5;

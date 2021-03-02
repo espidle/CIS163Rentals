@@ -75,29 +75,71 @@ public class ListModel extends AbstractTableModel {
                 break;
 
             case DueWithInWeek:
-                GregorianCalendar tempRentedCal = new GregorianCalendar();
-                GregorianCalendar tempDueCal = new GregorianCalendar();
-                filteredListRentals = (ArrayList<Rental>) listOfRentals.stream().filter( n -> {tempRentedCal = n.getRentedOn();
-                tempDueCal = n.getDueBack(); 
-                tempRentedCal.add(Calendar.DATE, 7);
-                (tempDueCal.compareTo(tempRentedCal) < 1);}.collect(Collectors.toList()));
+                filteredListRentals = (ArrayList<Rental>) listOfRentals.stream().filter( n -> {
+                    GregorianCalendar tempRentedCal = new GregorianCalendar();
+                    GregorianCalendar tempDueCal = new GregorianCalendar();
+                    tempRentedCal = (GregorianCalendar)n.getRentedOn().clone();
+                    tempDueCal = (GregorianCalendar)n.getDueBack().clone(); 
+                    tempRentedCal.add(Calendar.DATE, 7);
+                    return tempDueCal.compareTo(tempRentedCal) < 1;
+                }).collect(Collectors.toList());
             
                 break;
 
             case DueWithinWeekGamesFirst:
-                // Your code goes here
+            ArrayList<Rental> gameObjects = new  ArrayList<Rental>();
+            ArrayList<Rental> consoleObjects = new  ArrayList<Rental>();
+            ArrayList<Rental> allObjects = new  ArrayList<Rental>();
+                gameObjects = (ArrayList<Rental>) listOfRentals.stream().filter( n ->  n instanceof Game).collect(Collectors.toList());
+                consoleObjects = (ArrayList<Rental>) listOfRentals.stream().filter( n ->  n instanceof Console).collect(Collectors.toList());
+                Collections.sort(gameObjects, (n1,n2) -> n1.getNameOfRenter().compareTo(n2.getNameOfRenter()));
+                Collections.sort(consoleObjects, (n1,n2) -> n1.getNameOfRenter().compareTo(n2.getNameOfRenter()));
+                gameObjects.addAll(consoleObjects);
+                allObjects = gameObjects;
+                filteredListRentals = (ArrayList<Rental>) allObjects.stream().filter( n -> {
+                    GregorianCalendar tempRentedCal = new GregorianCalendar();
+                    GregorianCalendar tempDueCal = new GregorianCalendar();
+                    tempRentedCal = (GregorianCalendar)n.getRentedOn().clone();
+                    tempDueCal = (GregorianCalendar)n.getDueBack().clone(); 
+                    tempRentedCal.add(Calendar.DATE, 7);
+                    return tempDueCal.compareTo(tempRentedCal) < 1;
+            }).collect(Collectors.toList());
+
+                
                 break;
 
             case Cap14DaysOverdue:
-                // Your code goes here AND OTHER PLACES TOO
-                break;
+            ArrayList<Rental> fourteenDaysOver = new  ArrayList<Rental>();
+            fourteenDaysOver = (ArrayList<Rental>) listOfRentals.stream().filter(n -> {
+                GregorianCalendar tempRentedCal = new GregorianCalendar();
+                GregorianCalendar tempDueCal = new GregorianCalendar();
+                tempRentedCal = (GregorianCalendar)n.getRentedOn().clone();
+                tempDueCal = (GregorianCalendar)n.getDueBack().clone(); 
+                tempRentedCal.add(Calendar.DATE, 14);
+                return tempDueCal.compareTo(tempRentedCal) > -1; 
+            }).map(n ->
+               { 
+                   Rental tempRent = new Rental(n.nameOfRenter, n.rentedOn, n.dueBack, n.actualDateReturned); 
+               }
+            ).collect(Collectors.toList());
+            
+            filteredListRentals = (ArrayList<Rental>) listOfRentals.stream().filter( n -> {
+                GregorianCalendar tempRentedCal = new GregorianCalendar();
+                GregorianCalendar tempDueCal = new GregorianCalendar();
+                tempRentedCal = (GregorianCalendar)n.getRentedOn().clone();
+                tempDueCal = (GregorianCalendar)n.getDueBack().clone(); 
+                tempRentedCal.add(Calendar.DATE, 7);
+                return tempDueCal.compareTo(tempRentedCal) == 1;
+            }).collect(Collectors.toList());
+             
+           break;
             case EverythingScreen:
                 filteredListRentals = listOfRentals;
                 Collections.sort(filteredListRentals, (n1, n2) -> n1.nameOfRenter.compareTo(n2.nameOfRenter));
                 break;
 
             default:
-                throw new RuntimeException("upDate is in undefined state: " + display);
+                throw new RuntimeException("update is in undefined state: " + display);
         }
         fireTableStructureChanged();
     }
@@ -183,7 +225,7 @@ public class ListModel extends AbstractTableModel {
             case Cap14DaysOverdue:
                 return currentRentScreen(row, col);
             case DueWithinWeekGamesFirst:
-                return currentRentScreen(row, col);
+                return dueWithInWeek(row, col);
             case EverythingScreen: 
                 return everythingScreen(row, col);
 
@@ -309,6 +351,42 @@ public class ListModel extends AbstractTableModel {
                 throw new RuntimeException("Row,col out of range: " + row + " " + col);
         }
     }
+
+    private Object dueWithInWeek(int row, int col)
+    {
+        switch(col)
+        {
+            case 0:
+                return (filteredListRentals.get(row).nameOfRenter);
+            case 1:
+                return (filteredListRentals.get(row).getCost(filteredListRentals.
+                get(row).dueBack));
+            case 2:
+                return (formatter.format(filteredListRentals.get(row).rentedOn.
+                getTime()));
+            case 3:
+                return(formatter.format(filteredListRentals.get(row).dueBack.getTime()));
+            case 4:
+                if (filteredListRentals.get(row) instanceof Console){
+                    return (((Console) filteredListRentals.get(row)).getConsoleType());}
+                else {
+                    if (filteredListRentals.get(row) instanceof Game){
+                        if (((Game) filteredListRentals.get(row)).getConsole() != null){
+                            return ((Game) filteredListRentals.get(row)).getConsole();}
+                        else{
+                            return "";}
+                        }
+                    }
+            case 5:
+                if (filteredListRentals.get(row) instanceof Game)
+                    return (((Game) filteredListRentals.get(row)).getNameGame());
+                else
+                    return "";
+
+            default:
+                throw new RuntimeException("Row or col out of range:" + row + " " + col);
+        }
+    }
     public void add(Rental a) {
         listOfRentals.add(a);
         updateScreen();
@@ -401,32 +479,29 @@ public class ListModel extends AbstractTableModel {
                 String type = scan.nextLine(); 
                 if(type.contains("Game"))
                 {
-                    String renterName = scan.nextLine();
-                    renterName = renterName.substring(8);
-                    String rentalDate  = scan.nextLine();
-                    rentalDate = rentalDate.substring(10);
-                    String due = scan.nextLine();
-                    due = due.substring(8);
-                    String returnDate = scan.nextLine();
+                    String gameRenterName = scan.nextLine().substring(8);
+                    String gameRentalDateString  = scan.nextLine().substring(10);
+                    String gameDueDateString = scan.nextLine().substring(8);
+                    String gameReturnStatString = scan.nextLine();
                     String gameTitle = scan.nextLine();
                     String gameConsoleName = scan.nextLine();
 
-                    GregorianCalendar ReturnD = new GregorianCalendar();
-                    GregorianCalendar RD = new GregorianCalendar();
-                    GregorianCalendar DD = new GregorianCalendar();
+                    GregorianCalendar gameDueDate= new GregorianCalendar();
+                    GregorianCalendar gameRentalDate = new GregorianCalendar();
+                    GregorianCalendar gameReturnStat = new GregorianCalendar();
                     ConsoleTypes gamesConsole = ConsoleTypes.NoSelection;
                     
                     if(!(gameConsoleName.contains("No Console")))
                         gamesConsole = ConsoleTypes.valueOf(gameConsoleName);
-                    if(returnDate.contains("Not returned!"))
+                    if(gameReturnStatString.contains("Not returned!"))
                         {
-                            ReturnD = null;
+                             gameReturnStat = null;
                         }
                     else
                     {
                         try{
-                        Date dateReturn = formatter.parse(returnDate);
-                        ReturnD.setTime(dateReturn);
+                        Date tempDate = formatter.parse(gameReturnStatString);
+                        gameReturnStat.setTime(tempDate);
                         }
                         catch(Exception ex)
                         {
@@ -435,29 +510,50 @@ public class ListModel extends AbstractTableModel {
                         
                     }
                     try{
-                    Date rentDate = formatter.parse(rentalDate);
-                    Date dueDate = formatter.parse(due);
-                    RD.setTime(rentDate);
-                    DD.setTime(dueDate);
+                    Date tempD = formatter.parse(gameRentalDateString);
+                    gameRentalDate.setTime(tempD);
+                    tempD = formatter.parse(gameDueDateString);
+                    gameDueDate.setTime(tempD);
                     }
                     catch(Exception ex)
                     {
                         System.out.println("Date not formatted correctly");
                     }
                    
-                    Game g = new Game(renterName, RD, DD, ReturnD, gameTitle, gamesConsole);
+                    Game g = new Game(gameRenterName, gameRentalDate, gameDueDate, gameReturnStat, gameTitle, gamesConsole);
                     listOfRentals.add(g);
                 }
                 else 
                 {
-                    String consoleRenterName = scan.nextLine();
-                    consoleRenterName = consoleRenterName.substring(8);
-                    String consoleRentalDate  = scan.nextLine();
-                    consoleRentalDate = consoleRentalDate.substring(10);
+                    String consoleRenterName = scan.nextLine().substring(8);
+                    String consoleRentalDateString  = scan.nextLine().substring(10);
+                    String consoleDueDateString = scan.nextLine().substring(8);
+                    String consoleReturnStatString = scan.nextLine();
+                    String consoleNameString = scan.nextLine();
+
+                    GregorianCalendar consoleRentalDate = new GregorianCalendar();
+                    GregorianCalendar consoleDueDate = new GregorianCalendar();
+                    GregorianCalendar consoleReturnStat = new GregorianCalendar();
+                    ConsoleTypes consoleName = ConsoleTypes.valueOf(consoleNameString);
+                    if(consoleReturnStatString.contains("Not returned!"))
+                    {
+                        consoleReturnStat = null;
+                    }
+                    else
+                    {
+                        try{
+                            Date tempD = formatter.parse(consoleReturnStatString);
+                            consoleReturnStat.setTime(tempD);
+                        }
+                        catch(Exception ex){
+                            System.out.println("Problem with parsing console  return date");
+                        }
+                    }
                     try {
-                    Date rentDate = formatter.parse(consoleRentalDate);
-                    GregorianCalendar CRD = new GregorianCalendar();
-                    CRD.setTime(rentDate);
+                    Date tempDate = formatter.parse(consoleRentalDateString);
+                    consoleRentalDate.setTime(tempDate);
+                    tempDate = formatter.parse(consoleDueDateString);
+                    consoleDueDate.setTime(tempDate);
                     }
 
                     catch(Exception ex)
@@ -465,7 +561,8 @@ public class ListModel extends AbstractTableModel {
 
                     }
                    
-                    Console c = new Console();
+                    Console c = new Console(consoleRenterName, consoleRentalDate,consoleDueDate, consoleReturnStat, consoleName);
+                    listOfRentals.add(c);
                 }
                 
             }
@@ -521,8 +618,8 @@ public class ListModel extends AbstractTableModel {
             Game game3 = new Game("Person1", g5, g3, null, "title2", ConsoleTypes.SegaGenesisMini);
             Game game4 = new Game("Person7", g4, g8, null, "title2", null);
             Game game5 = new Game("Person3", g3, g1, g1, "title2", ConsoleTypes.XBoxOneS);
-            Game game6 = new Game("Person6", g4, g7, null, "title1", ConsoleTypes.NintendoSwich);
-            Game game7 = new Game("Person5", g4, g8, null, "title1", ConsoleTypes.NintendoSwich);
+            Game game6 = new Game("Person6", g4, g7, null, "title1", ConsoleTypes.NintendoSwitch);
+            Game game7 = new Game("Person5", g4, g8, null, "title1", ConsoleTypes.NintendoSwitch);
 
             add(game1);
             add(game4);
@@ -543,7 +640,7 @@ public class ListModel extends AbstractTableModel {
             Random rand = new Random(13);
             String guest = null;
 
-            while (count < 0) {  // change this number to 300 for a complete test of your code
+            while (count < 300) {  // change this number to 300 for a complete test of your code
                 Date date = df.parse("7/" + (rand.nextInt(10) + 2) + "/2020");
                 GregorianCalendar g = new GregorianCalendar();
                 g.setTime(date);
@@ -551,7 +648,7 @@ public class ListModel extends AbstractTableModel {
                     guest = "Game" + rand.nextInt(5);
                     Game game;
                     if (count % 2 == 0)
-                        game = new Game(guest, g4, g, null, "title2", ConsoleTypes.NintendoSwich);
+                        game = new Game(guest, g4, g, null, "title2", ConsoleTypes.NintendoSwitch);
                     else
                         game = new Game(guest, g4, g, null, "title2", null);
                     add(game);
@@ -583,7 +680,7 @@ public class ListModel extends AbstractTableModel {
             case 2:
                 return ConsoleTypes.PlayStation4Pro;
             case 3:
-                return ConsoleTypes.NintendoSwich;
+                return ConsoleTypes.NintendoSwitch;
             default:
                 return ConsoleTypes.SegaGenesisMini;
         }

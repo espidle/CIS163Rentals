@@ -40,14 +40,14 @@ Rented on 07/02/2020
 DueDate 07/25/2020
 Not returned!
 title1
-NintendoSwich
+NintendoSwitch
 rentalproject.Game
 Name is Person5
 Rented on 07/02/2020
 DueDate 07/29/2020
 Not returned!
 title1
-NintendoSwich
+NintendoSwitch
 rentalproject.Console
 Name is Person1
 Rented on 07/02/2020
